@@ -30,10 +30,7 @@ def find_expired_active_credentials(
     comparison_date = pd.Timestamp(as_of_date or datetime.now(UTC).date())
 
     normalized_status = (
-        dataframe["credential_status"]
-        .astype("string")
-        .str.strip()
-        .str.lower()
+        dataframe["credential_status"].astype("string").str.strip().str.lower()
     )
 
     expiration_dates = pd.to_datetime(

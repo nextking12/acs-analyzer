@@ -21,9 +21,6 @@ def load_cardholder_csv(source: CsvSource) -> pd.DataFrame:
     if dataframe.empty:
         raise ValueError("The uploaded CSV contains no records.")
 
-    dataframe.columns = [
-        column.strip().lower()
-        for column in dataframe.columns
-    ]
+    dataframe.columns = [column.strip().lower() for column in dataframe.columns]
 
     return dataframe
