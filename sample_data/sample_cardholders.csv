@@ -1,0 +1,7 @@
+cardholder_name,badge_number,department,credential_status,expiration_date,last_access_date
+Alex Morgan,10001,Operations,active,2025-12-31,2026-06-15
+Jordan Lee,10002,Engineering,active,2027-01-15,2026-07-20
+Taylor Smith,10003,Security,inactive,2025-06-30,2025-10-01
+Morgan Davis,10002,Facilities,active,2027-03-01,2026-07-10
+Casey Johnson,10005,,active,2026-08-10,2024-01-15
+Riley Brown,10006,Finance,active,,2026-07-22
