@@ -1,3 +1,4 @@
+from datetime import date
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -18,3 +19,14 @@ class Finding(BaseModel):
     description: str
     recommended_action: str
     source_data: dict[str, str | None]
+
+
+class AnalysisSummary(BaseModel):
+    analysis_date: date
+    records_analyzed: int
+    active_credentials: int
+    inactive_credentials: int
+    other_status_credentials: int
+    total_findings: int
+    findings_by_severity: dict[Severity, int]
+    findings_by_rule: dict[str, int]
