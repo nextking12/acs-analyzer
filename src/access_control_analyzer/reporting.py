@@ -38,23 +38,36 @@ DISCLAIMER = (
 )
 
 _REPORT_CSS = """
+html {
+  color-scheme: light;
+  background: #ffffff;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  margin: 32px;
+  margin: 0;
+  padding: 32px;
   color: #1f2933;
+  background: #ffffff;
+  color-scheme: light;
 }
 h1 { margin-bottom: 0; }
 .meta { color: #52606d; margin: 4px 0 24px; font-size: 0.95rem; }
 section { margin-bottom: 28px; }
 h2 { border-bottom: 1px solid #cbd2d9; padding-bottom: 6px; }
-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
 th, td {
   border: 1px solid #cbd2d9;
   padding: 6px 8px;
   text-align: left;
   vertical-align: top;
 }
-th { background: #f4f6f8; }
+td { background: #ffffff; color: #1f2933; }
+th { background: #f4f6f8; color: #1f2933; }
 .severity-High { color: #c0392b; font-weight: 600; }
 .severity-Medium { color: #b9770e; font-weight: 600; }
 .counts td { text-align: right; }
@@ -64,7 +77,9 @@ th { background: #f4f6f8; }
   border-top: 1px solid #cbd2d9;
   padding-top: 12px;
 }
-@media print { body { margin: 12mm; } }
+@media print {
+  body { padding: 12mm; }
+}
 """
 
 
