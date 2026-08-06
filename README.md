@@ -9,6 +9,10 @@ the results by severity, and exports consolidated findings as CSV.
 > Use synthetic or approved test data only. Do not upload operational security
 > data or personally identifiable information.
 
+This analyzer is the first product in a planned Engineering Toolkit for
+physical security professionals. See [Project Context](docs/PROJECT_CONTEXT.md)
+for the product vision, intended users, principles, and version 1 direction.
+
 ## Requirements
 
 - Python 3.13 or later
