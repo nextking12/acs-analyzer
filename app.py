@@ -1,10 +1,14 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 from access_control_analyzer.analyzer import (
     analyze_cardholders,
     findings_to_dataframe,
+    summarize_cardholders,
 )
 from access_control_analyzer.loader import load_cardholder_csv
+from access_control_analyzer.presentation import build_summary_metrics
+from access_control_analyzer.reporting import generate_executive_report_html
 
 st.set_page_config(
     page_title="Access Control Data Analyzer",
@@ -36,26 +40,17 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     try:
         records = load_cardholder_csv(uploaded_file)
-        findings = findings_to_dataframe(analyze_cardholders(records))
+        typed_findings = analyze_cardholders(records)
+        summary = summarize_cardholders(records, typed_findings)
+        findings = findings_to_dataframe(typed_findings)
     except ValueError as exc:
         st.error(str(exc))
     else:
-        metric_one, metric_two, metric_three = st.columns(3)
+        summary_metrics = build_summary_metrics(summary)
+        metric_columns = st.columns(len(summary_metrics))
 
-        metric_one.metric(
-            "Records analyzed",
-            len(records),
-        )
-
-        metric_two.metric(
-            "Total findings",
-            len(findings),
-        )
-
-        metric_three.metric(
-            "High-severity findings",
-            findings["severity"].eq("High").sum(),
-        )
+        for column, (label, value) in zip(metric_columns, summary_metrics, strict=True):
+            column.metric(label, value)
 
         st.subheader("Audit findings")
 
@@ -98,3 +93,17 @@ if uploaded_file is not None:
                 file_name="access_control_audit_findings.csv",
                 mime="text/csv",
             )
+
+        st.subheader("Executive report")
+
+        report_html = generate_executive_report_html(summary, findings)
+
+        st.download_button(
+            label="Download executive report (HTML)",
+            data=report_html,
+            file_name="access_control_audit_report.html",
+            mime="text/html",
+        )
+
+        with st.expander("Print preview"):
+            components.html(report_html, height=600, scrolling=True)
