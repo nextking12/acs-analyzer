@@ -7,7 +7,13 @@ from access_control_analyzer.analyzer import (
     summarize_cardholders,
 )
 from access_control_analyzer.loader import load_cardholder_csv
-from access_control_analyzer.presentation import build_summary_metrics
+from access_control_analyzer.presentation import (
+    AUDIT_RULE_GUIDE,
+    REQUIRED_CSV_COLUMNS,
+    WORKFLOW_STEPS,
+    build_summary_metrics,
+    get_sample_cardholder_path,
+)
 from access_control_analyzer.reporting import generate_executive_report_html
 
 st.set_page_config(
@@ -32,14 +38,52 @@ st.warning(
     """
 )
 
-uploaded_file = st.file_uploader(
-    "Upload cardholder CSV",
-    type=["csv"],
+with st.expander("How it works"):
+    for index, step in enumerate(WORKFLOW_STEPS, start=1):
+        st.write(f"{index}. {step}")
+
+with st.expander("Audit rules"):
+    for rule_name, severity in AUDIT_RULE_GUIDE:
+        st.write(f"- **{rule_name}** — {severity}")
+
+with st.expander("CSV format"):
+    st.write("Required columns:")
+    for column in REQUIRED_CSV_COLUMNS:
+        st.write(f"- `{column}`")
+    st.write(
+        "Additional columns are preserved in the findings export. "
+        "Column names are normalized by trimming whitespace and converting "
+        "them to lowercase."
+    )
+
+data_source = st.radio(
+    "Data source",
+    ("Upload CSV", "Use sample data"),
+    horizontal=True,
 )
 
-if uploaded_file is not None:
+source = None
+
+if data_source == "Upload CSV":
+    source = st.file_uploader(
+        "Upload cardholder CSV",
+        type=["csv"],
+    )
+else:
     try:
-        records = load_cardholder_csv(uploaded_file)
+        sample_path = get_sample_cardholder_path()
+    except FileNotFoundError as exc:
+        st.error(str(exc))
+    else:
+        st.info(
+            "Using the built-in synthetic sample at "
+            f"`{sample_path.name}`. No operational data is loaded."
+        )
+        source = sample_path
+
+if source is not None:
+    try:
+        records = load_cardholder_csv(source)
         typed_findings = analyze_cardholders(records)
         summary = summarize_cardholders(records, typed_findings)
         findings = findings_to_dataframe(typed_findings)

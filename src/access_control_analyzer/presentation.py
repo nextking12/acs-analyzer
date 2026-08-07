@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from access_control_analyzer.models import AnalysisSummary, Severity
 
 CORE_SUMMARY_METRICS: tuple[tuple[str, str], ...] = (
@@ -10,6 +12,45 @@ CORE_SUMMARY_METRICS: tuple[tuple[str, str], ...] = (
 )
 
 OTHER_STATUS_LABEL = "Other / missing status credentials"
+
+SAMPLE_CARDHOLDERS_RELATIVE = Path("sample_data") / "sample_cardholders.csv"
+
+WORKFLOW_STEPS: tuple[str, ...] = (
+    "Load a cardholder CSV export, or use the built-in synthetic sample.",
+    "Review the analysis summary and filtered audit findings.",
+    "Download the detailed findings CSV for investigation.",
+    "Download or print the executive report for stakeholders.",
+)
+
+AUDIT_RULE_GUIDE: tuple[tuple[str, str], ...] = (
+    ("Expired active credential", "High"),
+    ("Missing or invalid expiration date on an active credential", "High"),
+    ("Duplicate nonblank badge number", "High"),
+    ("Active credential missing a department", "Medium"),
+)
+
+REQUIRED_CSV_COLUMNS: tuple[str, ...] = (
+    "cardholder_name",
+    "badge_number",
+    "department",
+    "credential_status",
+    "expiration_date",
+)
+
+
+def get_sample_cardholder_path() -> Path:
+    candidates = (
+        Path.cwd() / SAMPLE_CARDHOLDERS_RELATIVE,
+        Path(__file__).resolve().parents[2] / SAMPLE_CARDHOLDERS_RELATIVE,
+    )
+    for path in candidates:
+        if path.is_file():
+            return path.resolve()
+
+    raise FileNotFoundError(
+        "Sample cardholder CSV not found. Expected "
+        f"{SAMPLE_CARDHOLDERS_RELATIVE.as_posix()} in the project root."
+    )
 
 
 def build_summary_metrics(summary: AnalysisSummary) -> list[tuple[str, int]]:
