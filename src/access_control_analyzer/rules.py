@@ -6,7 +6,14 @@ from access_control_analyzer.models import Finding, Severity
 
 
 def _value_or_none(value: object) -> str | None:
-    return None if pd.isna(value) else str(value)
+    if value is None:
+        return None
+    try:
+        if bool(pd.isna(value)):  # type: ignore[call-overload]
+            return None
+    except (TypeError, ValueError):
+        pass
+    return str(value)
 
 
 def _finding(

@@ -78,15 +78,24 @@ Jordan Lee,10002,Engineering,active,2027-01-15
 
 Empty, malformed, or incomplete CSV files produce an error in the application.
 
+Uploads are limited to 5 MB and 50,000 records. The loader decodes UTF-8 (with
+or without BOM) and falls back to Windows-1252, with a clear error when decoding
+fails. Findings CSV downloads neutralize spreadsheet formula injection by
+prefixing cells that begin with `=`, `+`, `-`, `@`, tab, or carriage return.
+
 ## Development
 
-Run linting, formatting checks, and tests:
+Run linting, formatting checks, type checking, and tests:
 
 ```bash
+uv sync --all-groups
 uv run ruff check .
 uv run ruff format --check .
+uv run mypy src
 uv run pytest
 ```
+
+GitHub Actions runs the same checks on pushes and pull requests to `main`.
 
 ## License
 

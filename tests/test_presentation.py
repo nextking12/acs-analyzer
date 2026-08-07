@@ -10,7 +10,9 @@ from access_control_analyzer.presentation import (
     OTHER_STATUS_LABEL,
     SAMPLE_CARDHOLDERS_RELATIVE,
     build_summary_metrics,
+    dataframe_to_safe_csv,
     get_sample_cardholder_path,
+    sanitize_csv_cell,
 )
 
 
@@ -132,3 +134,30 @@ def test_sample_cardholders_trigger_all_rules() -> None:
         "duplicate_badge_number",
         "active_missing_department",
     }
+
+
+def test_sanitize_csv_cell_neutralizes_formula_prefixes() -> None:
+    assert sanitize_csv_cell("=CMD()") == "'=CMD()"
+    assert sanitize_csv_cell("+123") == "'+123"
+    assert sanitize_csv_cell("-123") == "'-123"
+    assert sanitize_csv_cell("@sum") == "'@sum"
+    assert sanitize_csv_cell("\tTAB") == "'\tTAB"
+    assert sanitize_csv_cell("safe") == "safe"
+    assert sanitize_csv_cell(None) == ""
+
+
+def test_dataframe_to_safe_csv_prefixes_formula_cells() -> None:
+    import pandas as pd
+
+    frame = pd.DataFrame(
+        {
+            "cardholder_name": ["=HYPERLINK()"],
+            "badge_number": ["10001"],
+        }
+    )
+
+    csv_text = dataframe_to_safe_csv(frame)
+
+    assert "'=HYPERLINK()" in csv_text
+    assert "=HYPERLINK()" in csv_text
+    assert csv_text.splitlines()[1].startswith("'=")

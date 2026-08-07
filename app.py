@@ -6,12 +6,13 @@ from access_control_analyzer.analyzer import (
     findings_to_dataframe,
     summarize_cardholders,
 )
-from access_control_analyzer.loader import load_cardholder_csv
+from access_control_analyzer.loader import MAX_UPLOAD_BYTES, load_cardholder_csv
 from access_control_analyzer.presentation import (
     AUDIT_RULE_GUIDE,
     REQUIRED_CSV_COLUMNS,
     WORKFLOW_STEPS,
     build_summary_metrics,
+    dataframe_to_safe_csv,
     get_sample_cardholder_path,
 )
 from access_control_analyzer.reporting import generate_executive_report_html
@@ -65,10 +66,19 @@ data_source = st.radio(
 source = None
 
 if data_source == "Upload CSV":
-    source = st.file_uploader(
+    uploaded = st.file_uploader(
         "Upload cardholder CSV",
         type=["csv"],
+        help=f"Maximum upload size: {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
     )
+    if uploaded is not None:
+        if uploaded.size > MAX_UPLOAD_BYTES:
+            st.error(
+                f"CSV exceeds the maximum size of "
+                f"{MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+            )
+        else:
+            source = uploaded
 else:
     try:
         sample_path = get_sample_cardholder_path()
@@ -133,7 +143,7 @@ if source is not None:
 
             st.download_button(
                 label="Download all findings",
-                data=findings.to_csv(index=False),
+                data=dataframe_to_safe_csv(findings),
                 file_name="access_control_audit_findings.csv",
                 mime="text/csv",
             )

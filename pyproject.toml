@@ -20,6 +20,8 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.0",
+    "pandas-stubs>=2.3.0",
     "pytest>=9.1.1",
     "ruff>=0.16.1",
 ]
@@ -40,3 +42,11 @@ select = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = "src"
+packages = ["access_control_analyzer"]
+strict = true
+warn_unreachable = true
+show_error_codes = true

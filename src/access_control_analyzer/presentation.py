@@ -1,6 +1,10 @@
 from pathlib import Path
 
+import pandas as pd
+
 from access_control_analyzer.models import AnalysisSummary, Severity
+
+CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
 CORE_SUMMARY_METRICS: tuple[tuple[str, str], ...] = (
     ("Records analyzed", "records_analyzed"),
@@ -72,3 +76,28 @@ def build_summary_metrics(summary: AnalysisSummary) -> list[tuple[str, int]]:
         metrics.append((OTHER_STATUS_LABEL, summary.other_status_credentials))
 
     return metrics
+
+
+def sanitize_csv_cell(value: object) -> str:
+    if value is None:
+        return ""
+    try:
+        if bool(pd.isna(value)):  # type: ignore[call-overload]
+            return ""
+    except (TypeError, ValueError):
+        pass
+
+    text = str(value)
+    if text.startswith(CSV_FORMULA_PREFIXES):
+        return f"'{text}"
+    return text
+
+
+def dataframe_to_safe_csv(dataframe: pd.DataFrame) -> str:
+    if dataframe.empty:
+        return dataframe.to_csv(index=False)
+
+    sanitized = dataframe.copy()
+    for column in sanitized.columns:
+        sanitized[column] = sanitized[column].map(sanitize_csv_cell)
+    return sanitized.to_csv(index=False)
