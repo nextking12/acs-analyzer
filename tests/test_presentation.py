@@ -1,9 +1,16 @@
 from datetime import date
+from pathlib import Path
 
+import pytest
+
+from access_control_analyzer.analyzer import analyze_cardholders, findings_to_dataframe
+from access_control_analyzer.loader import load_cardholder_csv
 from access_control_analyzer.models import AnalysisSummary, Severity
 from access_control_analyzer.presentation import (
     OTHER_STATUS_LABEL,
+    SAMPLE_CARDHOLDERS_RELATIVE,
     build_summary_metrics,
+    get_sample_cardholder_path,
 )
 
 
@@ -84,3 +91,44 @@ def test_build_summary_metrics_reports_zero_findings() -> None:
         ("High-severity findings", 0),
         ("Medium-severity findings", 0),
     ]
+
+
+def test_get_sample_cardholder_path_resolves_existing_file() -> None:
+    path = get_sample_cardholder_path()
+
+    assert path.is_file()
+    assert path.name == SAMPLE_CARDHOLDERS_RELATIVE.name
+
+
+def test_get_sample_cardholder_path_raises_when_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    fake_package_file = (
+        tmp_path / "pkg" / "src" / "access_control_analyzer" / "presentation.py"
+    )
+    fake_package_file.parent.mkdir(parents=True)
+    fake_package_file.write_text("# stub\n")
+    monkeypatch.setattr(
+        "access_control_analyzer.presentation.__file__",
+        str(fake_package_file),
+    )
+
+    with pytest.raises(FileNotFoundError, match="Sample cardholder CSV not found"):
+        get_sample_cardholder_path()
+
+
+def test_sample_cardholders_trigger_all_rules() -> None:
+    records = load_cardholder_csv(get_sample_cardholder_path())
+    findings = analyze_cardholders(records, as_of_date=date(2026, 8, 6))
+    results = findings_to_dataframe(findings)
+
+    assert len(records) == 7
+    assert set(results["rule_id"]) == {
+        "expired_active_credential",
+        "missing_or_invalid_expiration",
+        "duplicate_badge_number",
+        "active_missing_department",
+    }

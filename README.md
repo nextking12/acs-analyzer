@@ -32,8 +32,9 @@ Start the Streamlit application:
 uv run streamlit run app.py
 ```
 
-Open the local URL shown in the terminal, then upload a cardholder CSV. A
-synthetic example is available at `sample_data/sample_cardholders.csv`.
+Open the local URL shown in the terminal. Choose **Use sample data** to run the
+built-in synthetic demo without uploading a file, or upload your own cardholder
+CSV. The sample file also lives at `sample_data/sample_cardholders.csv`.
 
 ## Audit Rules
 
