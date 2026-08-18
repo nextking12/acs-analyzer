@@ -7,6 +7,7 @@ from access_control_analyzer.analyzer import (
     RULE_IDS,
     analyze_cardholders,
     findings_to_dataframe,
+    run_analysis,
     summarize_cardholders,
 )
 from access_control_analyzer.models import Severity
@@ -129,3 +130,20 @@ def test_empty_analysis_summary_includes_zero_for_every_rule_and_severity() -> N
         Severity.MEDIUM: 0,
     }
     assert summary.findings_by_rule == dict.fromkeys(RULE_IDS, 0)
+
+
+def test_run_analysis_shares_one_analysis_date_between_findings_and_summary() -> None:
+    dataframe = pd.DataFrame(
+        {
+            "cardholder_name": ["Expired"],
+            "badge_number": ["10001"],
+            "department": ["Operations"],
+            "credential_status": ["active"],
+            "expiration_date": ["2025-01-01"],
+        }
+    )
+
+    result = run_analysis(dataframe, as_of_date=date(2026, 7, 28))
+
+    assert result.summary.analysis_date == date(2026, 7, 28)
+    assert result.findings[0].description.endswith("2025-01-01.")

@@ -1,4 +1,5 @@
 from collections import Counter
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
 import pandas as pd
@@ -6,6 +7,7 @@ import pandas as pd
 from access_control_analyzer.models import AnalysisSummary, Finding, Severity
 from access_control_analyzer.normalizer import normalize_cardholders
 from access_control_analyzer.rules import (
+    RULE_DEFINITIONS,
     find_active_credentials_missing_departments,
     find_duplicate_badge_numbers,
     find_expired_active_credentials,
@@ -23,12 +25,68 @@ FINDING_COLUMNS = [
     "recommended_action",
 ]
 
-RULE_IDS = (
-    "expired_active_credential",
-    "missing_or_invalid_expiration",
-    "duplicate_badge_number",
-    "active_missing_department",
-)
+RULE_IDS = tuple(rule.rule_id for rule in RULE_DEFINITIONS)
+
+
+@dataclass(frozen=True)
+class AnalysisResult:
+    summary: AnalysisSummary
+    findings: list[Finding]
+
+
+def _findings_for_normalized(
+    dataframe: pd.DataFrame, *, as_of_date: date
+) -> list[Finding]:
+    return [
+        *find_expired_active_credentials(dataframe, as_of_date=as_of_date),
+        *find_missing_or_invalid_expiration_dates(dataframe),
+        *find_duplicate_badge_numbers(dataframe),
+        *find_active_credentials_missing_departments(dataframe),
+    ]
+
+
+def _summary_for_normalized(
+    dataframe: pd.DataFrame,
+    findings: list[Finding],
+    *,
+    analysis_date: date,
+) -> AnalysisSummary:
+    statuses = dataframe["credential_status"]
+    active_credentials = int(statuses.eq("active").sum())
+    inactive_credentials = int(statuses.eq("inactive").sum())
+    severity_counts = Counter(finding.severity for finding in findings)
+    rule_counts = Counter(finding.rule_id for finding in findings)
+
+    return AnalysisSummary(
+        analysis_date=analysis_date,
+        records_analyzed=len(dataframe),
+        active_credentials=active_credentials,
+        inactive_credentials=inactive_credentials,
+        other_status_credentials=(
+            len(dataframe) - active_credentials - inactive_credentials
+        ),
+        total_findings=len(findings),
+        findings_by_severity={
+            severity: severity_counts[severity] for severity in Severity
+        },
+        findings_by_rule={rule_id: rule_counts[rule_id] for rule_id in RULE_IDS},
+    )
+
+
+def run_analysis(
+    dataframe: pd.DataFrame,
+    *,
+    as_of_date: date | None = None,
+) -> AnalysisResult:
+    analysis_date = as_of_date or datetime.now(UTC).date()
+    normalized = normalize_cardholders(dataframe)
+    findings = _findings_for_normalized(normalized, as_of_date=analysis_date)
+    summary = _summary_for_normalized(
+        normalized,
+        findings,
+        analysis_date=analysis_date,
+    )
+    return AnalysisResult(summary=summary, findings=findings)
 
 
 def analyze_cardholders(
@@ -36,14 +94,9 @@ def analyze_cardholders(
     *,
     as_of_date: date | None = None,
 ) -> list[Finding]:
+    analysis_date = as_of_date or datetime.now(UTC).date()
     normalized = normalize_cardholders(dataframe)
-
-    return [
-        *find_expired_active_credentials(normalized, as_of_date=as_of_date),
-        *find_missing_or_invalid_expiration_dates(normalized),
-        *find_duplicate_badge_numbers(normalized),
-        *find_active_credentials_missing_departments(normalized),
-    ]
+    return _findings_for_normalized(normalized, as_of_date=analysis_date)
 
 
 def summarize_cardholders(
@@ -53,25 +106,10 @@ def summarize_cardholders(
     as_of_date: date | None = None,
 ) -> AnalysisSummary:
     normalized = normalize_cardholders(dataframe)
-    statuses = normalized["credential_status"]
-    active_credentials = int(statuses.eq("active").sum())
-    inactive_credentials = int(statuses.eq("inactive").sum())
-    severity_counts = Counter(finding.severity for finding in findings)
-    rule_counts = Counter(finding.rule_id for finding in findings)
-
-    return AnalysisSummary(
+    return _summary_for_normalized(
+        normalized,
+        findings,
         analysis_date=as_of_date or datetime.now(UTC).date(),
-        records_analyzed=len(normalized),
-        active_credentials=active_credentials,
-        inactive_credentials=inactive_credentials,
-        other_status_credentials=(
-            len(normalized) - active_credentials - inactive_credentials
-        ),
-        total_findings=len(findings),
-        findings_by_severity={
-            severity: severity_counts[severity] for severity in Severity
-        },
-        findings_by_rule={rule_id: rule_counts[rule_id] for rule_id in RULE_IDS},
     )
 
 

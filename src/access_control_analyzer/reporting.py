@@ -3,29 +3,13 @@ import html
 import pandas as pd
 
 from access_control_analyzer.models import AnalysisSummary, Severity
+from access_control_analyzer.rules import RULE_DEFINITIONS
 
 PRODUCT_NAME = "Access Control Data Analyzer"
 
-RULE_NAMES: dict[str, str] = {
-    "expired_active_credential": "Expired active credential",
-    "missing_or_invalid_expiration": "Missing or invalid expiration date",
-    "duplicate_badge_number": "Duplicate badge number",
-    "active_missing_department": "Active credential missing department",
-}
-
-DEFAULT_RECOMMENDED_ACTIONS: dict[str, str] = {
-    "expired_active_credential": (
-        "Disable the credential or confirm and update its expiration date."
-    ),
-    "missing_or_invalid_expiration": (
-        "Set a valid expiration date or disable the credential."
-    ),
-    "duplicate_badge_number": (
-        "Verify ownership and assign a unique badge number to each record."
-    ),
-    "active_missing_department": (
-        "Assign the cardholder to the appropriate department."
-    ),
+RULE_NAMES = {rule.rule_id: rule.name for rule in RULE_DEFINITIONS}
+DEFAULT_RECOMMENDED_ACTIONS = {
+    rule.rule_id: rule.recommended_action for rule in RULE_DEFINITIONS
 }
 
 DISCLAIMER = (

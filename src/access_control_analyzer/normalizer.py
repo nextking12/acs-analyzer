@@ -9,10 +9,16 @@ REQUIRED_COLUMNS = {
 }
 
 
+def normalize_column_name(column: object) -> str:
+    return str(column).strip().lower()
+
+
 def normalize_cardholders(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Return cardholder data normalized for audit rule evaluation."""
     normalized = dataframe.copy()
-    normalized.columns = [column.strip().lower() for column in normalized.columns]
+    normalized.columns = [
+        normalize_column_name(column) for column in normalized.columns
+    ]
 
     if normalized.columns.duplicated().any():
         duplicates = sorted(set(normalized.columns[normalized.columns.duplicated()]))

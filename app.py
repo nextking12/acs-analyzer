@@ -2,9 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from access_control_analyzer.analyzer import (
-    analyze_cardholders,
     findings_to_dataframe,
-    summarize_cardholders,
+    run_analysis,
 )
 from access_control_analyzer.loader import load_cardholder_csv
 from access_control_analyzer.presentation import (
@@ -84,8 +83,9 @@ else:
 if source is not None:
     try:
         records = load_cardholder_csv(source)
-        typed_findings = analyze_cardholders(records)
-        summary = summarize_cardholders(records, typed_findings)
+        analysis = run_analysis(records)
+        typed_findings = analysis.findings
+        summary = analysis.summary
         findings = findings_to_dataframe(typed_findings)
     except ValueError as exc:
         st.error(str(exc))

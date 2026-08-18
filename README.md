@@ -4,7 +4,8 @@ A Python-based audit utility for analyzing synthetic access-control
 cardholder exports.
 
 The Streamlit interface runs a set of access-control audit rules, summarizes
-the results by severity, and exports consolidated findings as CSV.
+the results by severity, and exports consolidated findings as CSV and a
+printable executive HTML report.
 
 > Use synthetic or approved test data only. Do not upload operational security
 > data or personally identifiable information.
@@ -52,7 +53,7 @@ The analyzer currently reports:
 Duplicate badges produce one finding for each affected record. The source row
 identifies its position after CSV parsing, with the first data row numbered 2.
 Use the rule and severity filters to review results in the application, or
-download the complete consolidated report.
+download the complete findings CSV and executive report.
 
 ## CSV Format
 

@@ -5,6 +5,8 @@ from typing import BinaryIO
 
 import pandas as pd
 
+from access_control_analyzer.normalizer import normalize_column_name
+
 CsvSource = str | Path | BinaryIO
 
 
@@ -21,7 +23,9 @@ def _validate_header(source: CsvSource) -> None:
         if isinstance(header, bytes):
             header = header.decode("utf-8-sig")
 
-    columns = [column.strip().lower() for column in next(csv.reader([header]), [])]
+    columns = [
+        normalize_column_name(column) for column in next(csv.reader([header]), [])
+    ]
     counts = Counter(columns)
     duplicates = sorted(column for column, count in counts.items() if count > 1)
     if duplicates:
@@ -42,6 +46,6 @@ def load_cardholder_csv(source: CsvSource) -> pd.DataFrame:
     if dataframe.empty:
         raise ValueError("The uploaded CSV contains no records.")
 
-    dataframe.columns = [column.strip().lower() for column in dataframe.columns]
+    dataframe.columns = [normalize_column_name(column) for column in dataframe.columns]
 
     return dataframe

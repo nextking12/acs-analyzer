@@ -19,8 +19,8 @@ be hidden in large spreadsheets, while the review process is difficult to repeat
 and document consistently.
 
 The Access Control Data Analyzer is the first Engineering Toolkit product. It
-converts a cardholder CSV export into structured findings and, over time, a
-client-readable executive report.
+converts a cardholder CSV export into structured findings and a client-readable
+executive report.
 
 ## Intended users
 
@@ -41,17 +41,16 @@ The analyzer currently:
 - Detects active credentials without a department
 - Presents consolidated findings in a local Streamlit application
 - Exports detailed findings as CSV
+- Generates a printable executive HTML report with summary counts and actions
 
 ## Version 1 direction
 
-Version 1 should turn the working analyzer into a portfolio-ready product. The
+Version 1 turns the working analyzer into a portfolio-ready product. The
 remaining product work is to:
 
-1. Produce a trustworthy analysis summary.
-2. Generate a printable executive report alongside the detailed CSV.
-3. Make the synthetic-data demonstration easy to run.
-4. Harden file handling, report export, tests, and automated validation.
-5. Document the problem, architecture, privacy decisions, and results as a case
+1. Keep the analysis summary and report trustworthy as rules evolve.
+2. Harden file handling, report export, tests, and automated validation.
+3. Document the problem, architecture, privacy decisions, and results as a case
    study.
 
 ## Product principles
