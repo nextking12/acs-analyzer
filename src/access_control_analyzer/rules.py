@@ -9,6 +9,15 @@ def _value_or_none(value: object) -> str | None:
     return None if pd.isna(value) else str(value)
 
 
+def _expiration_dates(dataframe: pd.DataFrame) -> pd.Series:
+    return pd.to_datetime(
+        dataframe["expiration_date"],
+        errors="coerce",
+        format="mixed",
+        utc=True,
+    )
+
+
 def _finding(
     row: pd.Series,
     *,
@@ -44,12 +53,7 @@ def find_expired_active_credentials(
         as_of_date or datetime.now(UTC).date(),
         tz="UTC",
     )
-    expiration_dates = pd.to_datetime(
-        dataframe["expiration_date"],
-        errors="coerce",
-        format="mixed",
-        utc=True,
-    )
+    expiration_dates = _expiration_dates(dataframe)
     mask = (
         dataframe["credential_status"].eq("active")
         & expiration_dates.notna()
@@ -80,12 +84,7 @@ def find_expired_active_credentials(
 def find_missing_or_invalid_expiration_dates(
     dataframe: pd.DataFrame,
 ) -> list[Finding]:
-    expiration_dates = pd.to_datetime(
-        dataframe["expiration_date"],
-        errors="coerce",
-        format="mixed",
-        utc=True,
-    )
+    expiration_dates = _expiration_dates(dataframe)
     mask = dataframe["credential_status"].eq("active") & expiration_dates.isna()
 
     return [

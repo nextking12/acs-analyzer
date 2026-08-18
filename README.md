@@ -12,6 +12,8 @@ the results by severity, and exports consolidated findings as CSV.
 This analyzer is the first product in a planned Engineering Toolkit for
 physical security professionals. See [Project Context](docs/PROJECT_CONTEXT.md)
 for the product vision, intended users, principles, and version 1 direction.
+For a concise architecture walkthrough and interview preparation, see the
+[Interview Guide](docs/INTERVIEW_GUIDE.md).
 
 ## Requirements
 
