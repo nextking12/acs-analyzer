@@ -103,14 +103,11 @@ def find_expired_active_credentials(
             row,
             rule=rule,
             description=(
-                f"Active credential expired on {expiration.date().isoformat()}."
+                "Active credential expired on "
+                f"{expiration_dates.loc[row.name].date().isoformat()}."
             ),
         )
-        for (_, row), expiration in zip(
-            dataframe.loc[mask].iterrows(),
-            expiration_dates.loc[mask],
-            strict=True,
-        )
+        for _, row in dataframe.loc[mask].iterrows()
     ]
 
 
@@ -132,9 +129,10 @@ def find_missing_or_invalid_expiration_dates(
 
 
 def find_duplicate_badge_numbers(dataframe: pd.DataFrame) -> list[Finding]:
-    duplicate_mask = dataframe["badge_number"].notna() & dataframe[
-        "badge_number"
-    ].duplicated(keep=False)
+    duplicate_mask = (
+        dataframe["badge_number"].notna()
+        & dataframe["badge_number"].duplicated(keep=False)
+    )
     duplicate_counts = dataframe.loc[duplicate_mask, "badge_number"].value_counts()
     rule = RULES["duplicate_badge_number"]
 

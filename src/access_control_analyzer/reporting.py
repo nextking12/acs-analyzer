@@ -147,7 +147,7 @@ def _findings_table(findings: pd.DataFrame) -> str:
     return (
         "<table>\n"
         f"  <thead>\n    <tr>\n{headers}\n    </tr>\n  </thead>\n"
-        f"  <tbody>\n{chr(10).join(body_rows)}\n  </tbody>\n</table>"
+        f"  <tbody>\n{'\n'.join(body_rows)}\n  </tbody>\n</table>"
     )
 
 

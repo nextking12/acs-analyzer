@@ -34,6 +34,10 @@ class AnalysisResult:
     findings: list[Finding]
 
 
+def _default_analysis_date(as_of_date: date | None) -> date:
+    return as_of_date or datetime.now(UTC).date()
+
+
 def _findings_for_normalized(
     dataframe: pd.DataFrame, *, as_of_date: date
 ) -> list[Finding]:
@@ -78,7 +82,7 @@ def run_analysis(
     *,
     as_of_date: date | None = None,
 ) -> AnalysisResult:
-    analysis_date = as_of_date or datetime.now(UTC).date()
+    analysis_date = _default_analysis_date(as_of_date)
     normalized = normalize_cardholders(dataframe)
     findings = _findings_for_normalized(normalized, as_of_date=analysis_date)
     summary = _summary_for_normalized(
@@ -94,7 +98,7 @@ def analyze_cardholders(
     *,
     as_of_date: date | None = None,
 ) -> list[Finding]:
-    analysis_date = as_of_date or datetime.now(UTC).date()
+    analysis_date = _default_analysis_date(as_of_date)
     normalized = normalize_cardholders(dataframe)
     return _findings_for_normalized(normalized, as_of_date=analysis_date)
 
@@ -109,24 +113,26 @@ def summarize_cardholders(
     return _summary_for_normalized(
         normalized,
         findings,
-        analysis_date=as_of_date or datetime.now(UTC).date(),
+        analysis_date=_default_analysis_date(as_of_date),
     )
 
 
 def findings_to_dataframe(findings: list[Finding]) -> pd.DataFrame:
     records = []
     source_columns: dict[str, str] = {}
+    reserved = set(FINDING_COLUMNS)
 
     for finding in findings:
         record = finding.model_dump(mode="json", exclude={"source_data"})
         for column, value in finding.source_data.items():
-            if column not in source_columns:
+            output_column = source_columns.get(column)
+            if output_column is None:
                 output_column = column
-                reserved_columns = {*FINDING_COLUMNS, *source_columns.values()}
-                while output_column in reserved_columns:
+                while output_column in reserved:
                     output_column = f"source_{output_column}"
                 source_columns[column] = output_column
-            record[source_columns[column]] = value
+                reserved.add(output_column)
+            record[output_column] = value
         records.append(record)
 
     return pd.DataFrame(
