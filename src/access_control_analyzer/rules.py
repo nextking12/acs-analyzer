@@ -12,6 +12,7 @@ class RuleDefinition:
     name: str
     severity: Severity
     recommended_action: str
+    guide_name: str | None = None
 
 
 RULE_DEFINITIONS = (
@@ -26,12 +27,14 @@ RULE_DEFINITIONS = (
         "Missing or invalid expiration date",
         Severity.HIGH,
         "Set a valid expiration date or disable the credential.",
+        "Missing or invalid expiration date on an active credential",
     ),
     RuleDefinition(
         "duplicate_badge_number",
         "Duplicate badge number",
         Severity.HIGH,
         "Verify ownership and assign a unique badge number to each record.",
+        "Duplicate nonblank badge number",
     ),
     RuleDefinition(
         "active_missing_department",
@@ -43,6 +46,10 @@ RULE_DEFINITIONS = (
 
 
 RULES = {definition.rule_id: definition for definition in RULE_DEFINITIONS}
+
+FINDING_SOURCE_EXCLUDED_COLUMNS = frozenset(
+    {"_source_row", "cardholder_name", "badge_number"}
+)
 
 
 def _value_or_none(value: object) -> str | None:
@@ -76,7 +83,7 @@ def _finding(
         source_data={
             str(column): _value_or_none(value)
             for column, value in row.items()
-            if column not in {"_source_row", "cardholder_name", "badge_number"}
+            if column not in FINDING_SOURCE_EXCLUDED_COLUMNS
         },
     )
 
@@ -129,10 +136,9 @@ def find_missing_or_invalid_expiration_dates(
 
 
 def find_duplicate_badge_numbers(dataframe: pd.DataFrame) -> list[Finding]:
-    duplicate_mask = (
-        dataframe["badge_number"].notna()
-        & dataframe["badge_number"].duplicated(keep=False)
-    )
+    duplicate_mask = dataframe["badge_number"].notna() & dataframe[
+        "badge_number"
+    ].duplicated(keep=False)
     duplicate_counts = dataframe.loc[duplicate_mask, "badge_number"].value_counts()
     rule = RULES["duplicate_badge_number"]
 

@@ -34,7 +34,7 @@ class AnalysisResult:
     findings: list[Finding]
 
 
-def _default_analysis_date(as_of_date: date | None) -> date:
+def _resolve_analysis_date(as_of_date: date | None) -> date:
     return as_of_date or datetime.now(UTC).date()
 
 
@@ -82,7 +82,7 @@ def run_analysis(
     *,
     as_of_date: date | None = None,
 ) -> AnalysisResult:
-    analysis_date = _default_analysis_date(as_of_date)
+    analysis_date = _resolve_analysis_date(as_of_date)
     normalized = normalize_cardholders(dataframe)
     findings = _findings_for_normalized(normalized, as_of_date=analysis_date)
     summary = _summary_for_normalized(
@@ -98,9 +98,7 @@ def analyze_cardholders(
     *,
     as_of_date: date | None = None,
 ) -> list[Finding]:
-    analysis_date = _default_analysis_date(as_of_date)
-    normalized = normalize_cardholders(dataframe)
-    return _findings_for_normalized(normalized, as_of_date=analysis_date)
+    return run_analysis(dataframe, as_of_date=as_of_date).findings
 
 
 def summarize_cardholders(
@@ -113,7 +111,7 @@ def summarize_cardholders(
     return _summary_for_normalized(
         normalized,
         findings,
-        analysis_date=_default_analysis_date(as_of_date),
+        analysis_date=_resolve_analysis_date(as_of_date),
     )
 
 

@@ -1,11 +1,14 @@
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
 from access_control_analyzer.analyzer import (
+    AnalysisResult,
     findings_to_dataframe,
     run_analysis,
 )
-from access_control_analyzer.loader import load_cardholder_csv
+from access_control_analyzer.loader import CsvSource, load_cardholder_csv
+from access_control_analyzer.models import AnalysisSummary
 from access_control_analyzer.presentation import (
     AUDIT_RULE_GUIDE,
     REQUIRED_CSV_COLUMNS,
@@ -14,6 +17,45 @@ from access_control_analyzer.presentation import (
     get_sample_cardholder_path,
 )
 from access_control_analyzer.reporting import generate_executive_report_html
+
+
+def _load_analysis(source: CsvSource) -> AnalysisResult:
+    return run_analysis(load_cardholder_csv(source))
+
+
+def _filter_findings(
+    findings: pd.DataFrame,
+    *,
+    selected_rules: list[str],
+    selected_severities: list[str],
+) -> pd.DataFrame:
+    return findings.loc[
+        findings["rule_name"].isin(selected_rules)
+        & findings["severity"].isin(selected_severities)
+    ]
+
+
+def _render_exports(summary: AnalysisSummary, findings: pd.DataFrame) -> None:
+    st.download_button(
+        label="Download all findings",
+        data=findings.to_csv(index=False),
+        file_name="access_control_audit_findings.csv",
+        mime="text/csv",
+    )
+
+    st.subheader("Executive report")
+    report_html = generate_executive_report_html(summary, findings)
+
+    st.download_button(
+        label="Download executive report (HTML)",
+        data=report_html,
+        file_name="access_control_audit_report.html",
+        mime="text/html",
+    )
+
+    with st.expander("Print preview"):
+        components.html(report_html, height=600, scrolling=True)
+
 
 st.set_page_config(
     page_title="Access Control Data Analyzer",
@@ -82,8 +124,7 @@ else:
 
 if source is not None:
     try:
-        records = load_cardholder_csv(source)
-        analysis = run_analysis(records)
+        analysis = _load_analysis(source)
         typed_findings = analysis.findings
         summary = analysis.summary
         findings = findings_to_dataframe(typed_findings)
@@ -120,10 +161,11 @@ if source is not None:
                 default=severities,
             )
 
-            visible_findings = findings.loc[
-                findings["rule_name"].isin(selected_rules)
-                & findings["severity"].isin(selected_severities)
-            ]
+            visible_findings = _filter_findings(
+                findings,
+                selected_rules=selected_rules,
+                selected_severities=selected_severities,
+            )
 
             st.dataframe(
                 visible_findings,
@@ -131,23 +173,4 @@ if source is not None:
                 hide_index=True,
             )
 
-            st.download_button(
-                label="Download all findings",
-                data=findings.to_csv(index=False),
-                file_name="access_control_audit_findings.csv",
-                mime="text/csv",
-            )
-
-        st.subheader("Executive report")
-
-        report_html = generate_executive_report_html(summary, findings)
-
-        st.download_button(
-            label="Download executive report (HTML)",
-            data=report_html,
-            file_name="access_control_audit_report.html",
-            mime="text/html",
-        )
-
-        with st.expander("Print preview"):
-            components.html(report_html, height=600, scrolling=True)
+        _render_exports(summary, findings)

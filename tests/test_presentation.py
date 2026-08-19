@@ -7,11 +7,13 @@ from access_control_analyzer.analyzer import analyze_cardholders, findings_to_da
 from access_control_analyzer.loader import load_cardholder_csv
 from access_control_analyzer.models import AnalysisSummary, Severity
 from access_control_analyzer.presentation import (
+    AUDIT_RULE_GUIDE,
     OTHER_STATUS_LABEL,
     SAMPLE_CARDHOLDERS_RELATIVE,
     build_summary_metrics,
     get_sample_cardholder_path,
 )
+from access_control_analyzer.rules import RULE_DEFINITIONS
 
 
 def _summary(**overrides: int) -> AnalysisSummary:
@@ -132,3 +134,11 @@ def test_sample_cardholders_trigger_all_rules() -> None:
         "duplicate_badge_number",
         "active_missing_department",
     }
+
+
+def test_audit_rule_guide_uses_rule_definitions() -> None:
+    expected = tuple(
+        (rule.guide_name or rule.name, rule.severity.value) for rule in RULE_DEFINITIONS
+    )
+
+    assert AUDIT_RULE_GUIDE == expected

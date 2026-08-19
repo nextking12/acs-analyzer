@@ -147,3 +147,27 @@ def test_run_analysis_shares_one_analysis_date_between_findings_and_summary() ->
 
     assert result.summary.analysis_date == date(2026, 7, 28)
     assert result.findings[0].description.endswith("2025-01-01.")
+
+
+def test_analysis_entry_points_keep_equivalent_results() -> None:
+    dataframe = pd.DataFrame(
+        {
+            "cardholder_name": ["Expired"],
+            "badge_number": ["10001"],
+            "department": ["Operations"],
+            "credential_status": ["active"],
+            "expiration_date": ["2025-01-01"],
+        }
+    )
+    analysis_date = date(2026, 7, 28)
+
+    result = run_analysis(dataframe, as_of_date=analysis_date)
+    findings = analyze_cardholders(dataframe, as_of_date=analysis_date)
+    summary = summarize_cardholders(
+        dataframe,
+        findings,
+        as_of_date=analysis_date,
+    )
+
+    assert findings == result.findings
+    assert summary == result.summary

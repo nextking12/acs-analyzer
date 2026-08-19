@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from access_control_analyzer.models import AnalysisSummary, Severity
+from access_control_analyzer.rules import RULE_DEFINITIONS
 
 CORE_SUMMARY_METRICS: tuple[tuple[str, str], ...] = (
     ("Records analyzed", "records_analyzed"),
@@ -22,11 +23,8 @@ WORKFLOW_STEPS: tuple[str, ...] = (
     "Download or print the executive report for stakeholders.",
 )
 
-AUDIT_RULE_GUIDE: tuple[tuple[str, str], ...] = (
-    ("Expired active credential", "High"),
-    ("Missing or invalid expiration date on an active credential", "High"),
-    ("Duplicate nonblank badge number", "High"),
-    ("Active credential missing a department", "Medium"),
+AUDIT_RULE_GUIDE: tuple[tuple[str, str], ...] = tuple(
+    (rule.guide_name or rule.name, rule.severity.value) for rule in RULE_DEFINITIONS
 )
 
 REQUIRED_CSV_COLUMNS: tuple[str, ...] = (
