@@ -1,5 +1,8 @@
 # Access Control Data Analyzer
 
+[![CI](https://github.com/nextking12/acs-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/nextking12/acs-analyzer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A Python-based audit utility for analyzing synthetic access-control
 cardholder exports.
 
@@ -87,6 +90,13 @@ uv run ruff check .
 uv run ruff format --check .
 uv run pytest
 ```
+
+The same checks run in CI on every push to `main` and on every pull
+request (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 

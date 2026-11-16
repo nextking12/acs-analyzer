@@ -1,11 +1,21 @@
 [project]
 name = "access-control-analyzer"
 version = "0.1.0"
-description = "Add your description here"
+description = "Audit utility for analyzing synthetic access-control cardholder exports"
 readme = "README.md"
 license = "MIT"
 authors = [
     { name = "Edward King", email = "king8three@gmail.com" }
+]
+keywords = ["access-control", "audit", "physical-security", "compliance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
 ]
 requires-python = ">=3.13"
 dependencies = [
@@ -13,6 +23,11 @@ dependencies = [
     "pydantic>=2.13.4",
     "streamlit>=1.60.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/nextking12/acs-analyzer"
+Repository = "https://github.com/nextking12/acs-analyzer"
+Issues = "https://github.com/nextking12/acs-analyzer/issues"
 
 [build-system]
 requires = ["uv_build>=0.11.24,<0.12.0"]
